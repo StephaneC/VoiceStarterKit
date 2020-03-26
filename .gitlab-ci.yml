@@ -1,0 +1,96 @@
+# define a default docker image for all jobs
+# from https://github.com/trek10inc/gitlab-boilerplate-injector/blob/master/.gitlab-ci.yml
+image: node:8.10
+
+variables:
+    PROD_ACCOUNT: ""
+    PROD_STAGE_NAME: "prod"
+    PROD1_REGION: eu-west-1
+    STAGING_ACCOUNT: ""
+    STAGING_STAGE_NAME: dev
+    STAGING_REGION: eu-west-1
+    STAGING_SLS_STAGE_NAME: dev
+
+
+stages:
+    - install # install all npm dependencies
+    - test    # execute unit tests
+    - package
+    - deploy  # stage for deploying to staging
+
+
+npmInstall:
+    stage: install
+    script:
+        - npm install
+    # artifacts describe the result of the stage
+    # that can be used in consecutive stages
+    artifacts:
+        untracked: true
+
+build:
+    stage: package
+    dependencies:
+        - npmInstall
+    script:
+        - npm install -g typescript
+        - npm run build
+        - mv .build build
+        - mv node_modules build/node_modules
+        - ls -all
+    artifacts:
+        untracked: true
+
+#linting:
+#    stage: test
+#    script:
+#        # install standardjs for linting
+#        - npm install -g standard
+#        - npm run-script lint
+
+unittesting:
+    stage: test
+    # use the artifcats of the 'npmInstall' job
+    dependencies:
+        - npmInstall
+    script:
+        # install dev-dependency mocha
+        - npm test
+
+#deploy:staging:
+#  stage: deploy
+#  script:
+#    - export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+#    - export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+#    - npm install -g serverless
+#    - ls
+#    - sls deploy -v -s ${STAGING_SLS_STAGE_NAME//-/} --region ${REGION:-"eu-west-1"}
+#  variables:
+#    ACCOUNT: ${STAGING_ACCOUNT}
+#    REGION: ${STAGING_REGION}
+#    DEPLOYMENT_ROLE: "arn:aws:iam::${STAGING_ACCOUNT}:role/gitlab"
+#    SLS_STAGE_NAME: ${STAGING_SLS_STAGE_NAME}
+#  environment:
+#    name: ${STAGING_SLS_STAGE_NAME}
+    #url: https://${CI_COMMIT_REF_SLUG}.something.com
+#  only:
+#    - master
+  
+deploy:prod:
+  stage: deploy
+  dependencies:
+    - npmInstall
+    - build
+  script:
+    - export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+    - export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    - npm install -g serverless
+    - ls
+    - mv build .build
+    - sls deploy -v -s prod --region ${REGION:-"eu-west-1"}
+  environment:
+    name: production
+    url: https://example.com
+  #when: manual
+  only:
+  - master

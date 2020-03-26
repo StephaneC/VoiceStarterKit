@@ -1,0 +1,46 @@
+{
+  "name": "voicestarterkit",
+  "version": "1.0.0",
+  "description": "A simple starter kit to fast launch an Alexa skill",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rm -rf .build/*",
+    "build": "tsc",
+    "test": "AWS_REGION=us-east-1 mocha -r ts-node/register test/*.test.ts",
+    "tsc": "tsc",
+    "deploy": "sls deploy -v -s dev --region eu-west-1",
+    "deployprod": "sls deploy --region eu-west-1 --stage=production"
+  },
+  "keywords": [
+    "alexa",
+    "typescript",
+    "skill",
+    "Gitlab IC"
+  ],
+  "dependencies": {
+    "ask-sdk": "2.7.0",
+    "request": "^2.88.0",
+    "express": "^4.17.1",
+    "actions-on-google": "^2.12.0",
+    "body-parser": "^1.19.0",
+    "SkillActionLib": "git+https://github.com/StephaneC/ActionSkillLib.git",
+    "request-promise": "^4.2.5",
+    "serverless-http": "^2.3.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.11",
+    "@types/chai": "^4.1.5",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.10.0",
+    "@types/request": "^2.48.1",
+    "serverless-plugin-typescript": "^1.1.5",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "chai-string": "^1.4.0",
+    "mocha": "^5.0.5",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.0.2"
+  },
+  "author": "Stéphane Castrec",
+  "license": "ISC"
+}
