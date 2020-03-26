@@ -15,7 +15,6 @@ variables:
 stages:
     - install # install all npm dependencies
     - test    # execute unit tests
-    - package
     - deploy  # stage for deploying to staging
 
 
@@ -28,18 +27,6 @@ npmInstall:
     artifacts:
         untracked: true
 
-build:
-    stage: package
-    dependencies:
-        - npmInstall
-    script:
-        - npm install -g typescript
-        - npm run build
-        - mv .build build
-        - mv node_modules build/node_modules
-        - ls -all
-    artifacts:
-        untracked: true
 
 #linting:
 #    stage: test
@@ -80,7 +67,6 @@ deploy:prod:
   stage: deploy
   dependencies:
     - npmInstall
-    - build
   script:
     - export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
     - export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
@@ -88,6 +74,43 @@ deploy:prod:
     - ls
     - mv build .build
     - sls deploy -v -s prod --region ${REGION:-"eu-west-1"}
+  environment:
+    name: production
+    url: https://example.com
+  #when: manual
+  only:
+  - master
+
+deploy:prod-home:
+  stage: deploy
+  dependencies:
+    - npmInstall
+    - build
+  script:
+    - export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+    - export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    - npm install -g serverless
+    - ls
+    - mv build .build
+    - sls deploy -v -s prod --region ${REGION:-"eu-west-1"} -f home
+  environment:
+    name: production
+    url: https://example.com
+  #when: manual
+  only:
+  - master
+deploy:prod-skill:
+  stage: deploy
+  dependencies:
+    - npmInstall
+    - build
+  script:
+    - export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+    - export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    - npm install -g serverless
+    - ls
+    - mv build .build
+    - sls deploy -v -s prod --region ${REGION:-"eu-west-1"} -f skill
   environment:
     name: production
     url: https://example.com
